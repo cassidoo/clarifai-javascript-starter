@@ -4,34 +4,55 @@ function getCredentials(cb) {
     'client_id': CLIENT_ID,
     'client_secret': CLIENT_SECRET
   };
+  var url = 'https://api.clarifai.com/v1/token';
 
-  return $.ajax({
-    'url': 'https://api.clarifai.com/v1/token',
-    'data': data,
-    'type': 'POST'
-  })
-  .then(function(r) {
-    localStorage.setItem('accessToken', r.access_token);
+  return axios.post(url, data, {
+    'transformRequest': [
+      function() {
+        return transformDataToParams(data);
+      }
+    ]
+  }).then(function(r) {
+    localStorage.setItem('accessToken', r.data.access_token);
     localStorage.setItem('tokenTimestamp', Math.floor(Date.now() / 1000));
     cb();
+  }, function(err) {
+    console.log(err);
   });
 }
 
+function transformDataToParams(data) {
+  var str = [];
+  for (var p in data) {
+    if (data.hasOwnProperty(p) && data[p]) {
+      if (typeof data[p] === 'string'){
+        str.push(encodeURIComponent(p) + '=' + encodeURIComponent(data[p]));
+      }
+      if (typeof data[p] === 'object'){
+        for (var i in data[p]) {
+          str.push(encodeURIComponent(p) + '=' + encodeURIComponent(data[p][i]));
+        }
+      }
+    }
+  }
+  return str.join('&');
+}
+
 function postImage(imgurl) {
+  var accessToken = localStorage.getItem('accessToken');
   var data = {
     'url': imgurl
   };
-  var accessToken = localStorage.getItem('accessToken');
-
-  return $.ajax({
-    'url': 'https://api.clarifai.com/v1/tag',
+  var url = 'https://api.clarifai.com/v1/tag';
+  return axios.post(url, data, {
     'headers': {
       'Authorization': 'Bearer ' + accessToken
-    },
-    'data': data,
-    'type': 'POST'
-  }).then(function(r){
-    parseResponse(r);
+    }
+    /*'content-type': 'application/x-www-form-urlencoded'*/
+  }).then(function(r) {
+    parseResponse(r.data);
+  }, function(err) {
+    console.log('Sorry, something is wrong: ' + err);
   });
 }
 
@@ -44,7 +65,7 @@ function parseResponse(resp) {
     console.log('Sorry, something is wrong.');
   }
 
-  $('#tags').text(tags.toString().replace(/,/g, ', '));
+  document.getElementById('tags').innerHTML = tags.toString().replace(/,/g, ', ');
   return tags;
 }
 
