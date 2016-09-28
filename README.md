@@ -15,11 +15,7 @@ you automatically using your credentials so you don't have to worry about it.
 
 You'll notice that in the `.gitignore` file, it references a `keys.js` file. 
 This is for security purposes, so you don't share your Client ID and Client
-Secret with others.  Create a `keys.js` file and have it look like the following:
-
-```
-var CLIENT_ID = 'your ID here';
-var CLIENT_SECRET = 'your secret here';
-```
+Secret with others.  Rename `keys.template.js` file  to `keys.js` and edit 
+the information.
 
 Then you're all set! Happy Clarifai-ing. :)
